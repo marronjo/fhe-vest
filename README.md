@@ -1,4 +1,12 @@
-# Fhenix Hardhat Example [![Open in Gitpod][gitpod-badge]][gitpod]
+# FHE Vesting Wallet
+
+## Abstract
+A new simple defi primitive that can be used for multiple different types of staking applications. Ideally users should have the option to stake their tokens for a reward over time, while maintaining privacy. Basically we want to hide certain features, specifically how much is being staked, how long is it being staked, and what is the reward.
+
+Allow contract to be deployed and vest tokens using linear curve for a given beneficiary.
+Hide sensitive fields like start, end, duration, amount and maybe even the beneficiary.
+
+## Fhenix Hardhat Example [![Open in Gitpod][gitpod-badge]][gitpod]
 
 [gitpod]: https://gitpod.io/#https://github.com/fhenixprotocol/fhenix-hardhat-example
 [gitpod-badge]: https://img.shields.io/badge/Gitpod-Open%20in%20Gitpod-FFB45B?logo=gitpod
