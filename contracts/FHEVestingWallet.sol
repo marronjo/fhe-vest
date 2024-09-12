@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import { FHE, inEuint32, euint128, euint32 } from "@fhenixprotocol/contracts/FHE.sol";
+import { FHE, inEuint32, euint32 } from "@fhenixprotocol/contracts/FHE.sol";
 import { Permissioned, Permission } from "@fhenixprotocol/contracts/access/Permissioned.sol";
 import { IFHERC20 } from "./IFHERC20.sol";
 
