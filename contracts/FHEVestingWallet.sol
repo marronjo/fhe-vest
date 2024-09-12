@@ -7,6 +7,7 @@ import { IFHERC20 } from "./IFHERC20.sol";
 
 /**
  * MENOTE
+ * 
  *  - fix IFHERC20 balances, euint instead of string ... allow computation
  *  added extra method that returns euint instead of sealed string
  *  maybe this is unsafe ? need further clarification
