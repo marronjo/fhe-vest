@@ -67,7 +67,7 @@ contract FHEVestingWallet is Permissioned {
             amount: amount,
             startTimestamp: startTimestamp,
             durationSeconds: durationSeconds,
-            amountReleased: FHE.asEuint32(0)
+            amountReleased: ZERO
         });
     }
 
