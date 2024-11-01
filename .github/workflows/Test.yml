@@ -1,7 +1,7 @@
 name: "CI"
 
 env:
-  DOTENV_CONFIG_PATH: "./.env.example"
+  FOUNDRY_PROFILE: "ci"
 
 on:
   workflow_dispatch:
@@ -11,47 +11,81 @@ on:
       - main
 
 jobs:
-  test:
-    services:
-      # Label used to access the service container
-      localfhenix:
-        options: --name localfhenix
-        image: ghcr.io/fhenixprotocol/localfhenix:v0.2.3-rc.2
-        ports:
-          - 42000:3000
-          - 42069:8547
+  lint:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out the repo"
         uses: "actions/checkout@v4"
 
-      - name: "Install Pnpm"
-        uses: "pnpm/action-setup@v3"
-        with:
-          version: "9"
+      - name: "Install Foundry"
+        uses: "foundry-rs/foundry-toolchain@v1"
 
-      - name: "Install Node.js"
-        uses: "actions/setup-node@v4"
-        with:
-          cache: "pnpm"
-          node-version: "lts/*"
+      - name: "Install Bun"
+        uses: "oven-sh/setup-bun@v1"
 
-      - name: "Install the dependencies"
-        run: "pnpm install"
+      - name: "Install the Node.js dependencies"
+        run: "bun install"
 
-      - name: "Compile the contracts and generate the TypeChain bindings"
-        run: "pnpm typechain"
+      - name: "Lint the code"
+        run: "bun run lint"
 
-      - name: "Make Money"
-        run: "pnpm faucet"
+      - name: "Add lint summary"
+        run: |
+          echo "## Lint result" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
 
-      - name: "Test the contracts using Hardhat Network"
-        run: "pnpm test"
+  build:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Check out the repo"
+        uses: "actions/checkout@v4"
 
-      - name: "Test the contract using LocalFhenix"
-        run: "pnpm test:localfhenix"
+      - name: "Install Foundry"
+        uses: "foundry-rs/foundry-toolchain@v1"
+
+      - name: "Install Bun"
+        uses: "oven-sh/setup-bun@v1"
+
+      - name: "Install the Node.js dependencies"
+        run: "bun install"
+
+      - name: "Build the contracts and print their size"
+        run: "forge build --sizes"
+
+      - name: "Add build summary"
+        run: |
+          echo "## Build result" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
+
+  test:
+    needs: ["lint", "build"]
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Check out the repo"
+        uses: "actions/checkout@v4"
+
+      - name: "Install Foundry"
+        uses: "foundry-rs/foundry-toolchain@v1"
+
+      - name: "Install Bun"
+        uses: "oven-sh/setup-bun@v1"
+
+      - name: "Install the Node.js dependencies"
+        run: "bun install"
+
+      - name: "Show the Foundry config"
+        run: "forge config"
+
+      - name: "Generate a fuzz seed that changes weekly to avoid burning through RPC allowance"
+        run: >
+          echo "FOUNDRY_FUZZ_SEED=$(
+            echo $(($EPOCHSECONDS - $EPOCHSECONDS % 604800))
+          )" >> $GITHUB_ENV
+
+      - name: "Run the tests"
+        run: "forge test"
 
       - name: "Add test summary"
         run: |
-          echo "## Test results" >> $GITHUB_STEP_SUMMARY
+          echo "## Tests result" >> $GITHUB_STEP_SUMMARY
           echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
