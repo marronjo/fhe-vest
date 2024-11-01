@@ -36,15 +36,7 @@ contract PermissionedTest is Test {
 }
 
 contract PermissionedTestContract is Permissioned {
-    function someFunctionWithOnlySender(
-        address owner,
-        Permission memory permission
-    )
-        public
-        view
-        onlyPermitted(permission, owner)
-        returns (uint256)
-    {
+    function someFunctionWithOnlySender(address owner, Permission memory permission) public view onlyPermitted(permission, owner) returns (uint256) {
         return 42;
     }
 }

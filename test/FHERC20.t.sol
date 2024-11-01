@@ -9,10 +9,6 @@ import { Permission, PermissionHelper } from "../util/PermissionHelper.sol";
 
 import { inEuint128, euint128 } from "@fhenixprotocol/contracts/FHE.sol";
 
-interface IERC20 {
-    function balanceOf(address account) external view returns (uint256);
-}
-
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract TokenTest is Test, FheEnabled {
@@ -52,64 +48,4 @@ contract TokenTest is Test, FheEnabled {
 
         vm.stopPrank();
     }
-
-    // /// @dev Basic test for the balanceOf function of the plaintext ERC20.
-    // function testBalanceOf() external {
-    //     assertEq(0, token.balanceOf(msg.sender));
-    //     uint256 toMint = 1.0 * 10 ^ token.decimals();
-    //     token.mint(msg.sender, toMint);
-    //     assertEq(token.balanceOf(msg.sender), toMint);
-    // }
-
-    // @dev Failing test for mintEncrypted function with unauthorized minter
-    // function testMintEncryptedNoPermissions() public {
-    //     uint128 value = 50;
-    //     inEuint128 memory inputValue = encrypt128(value);
-
-    //     vm.expectRevert(FHERC20NotAuthorized.selector);
-    //     token.mintEncrypted(owner, inputValue);
-    // }
-
-    // @dev Test mintEncrypted function with authorized minter
-    // function testMintEncrypted() public {
-    //     uint128 value = 50;
-    //     inEuint128 memory encryptedValue = encrypt128(value);
-
-    //     vm.prank(owner);
-    //     token.mintEncrypted(owner, encryptedValue);
-
-    //     string memory encryptedBalance = token.balanceOfEncrypted(owner, permission);
-    //     uint256 balance = unseal(address(token), encryptedBalance);
-    //     assertEq(balance, uint256(value));
-    // }
-
-    // @dev Test transferEncrypted function - tests reading and writing encrypted balances and using permissions
-    // function testTransferEncrypted() public {
-    //     uint128 value = 50;
-    //     inEuint128 memory encryptedValue = encrypt128(value);
-
-    //     vm.startBroadcast(owner);
-
-    //     token.mintEncrypted(owner, encryptedValue);
-
-    //     string memory encryptedBalance = token.balanceOfEncrypted(owner, permission);
-    //     uint256 balance = unseal(address(token), encryptedBalance);
-    //     assertEq(balance, uint256(value));
-
-    //     uint128 transferValue = 10;
-
-    //     inEuint128 memory encryptedTransferValue = encrypt128(transferValue);
-    //     euint128 transferred = token.transferEncrypted(receiver, encryptedTransferValue);
-    //     assertEq(transferred.decrypt(), transferValue);
-
-    //     string memory encryptedBalanceAfterTransfer = token.balanceOfEncrypted(owner, permission);
-    //     uint256 balanceAfterTransfer = unseal(address(token), encryptedBalanceAfterTransfer);
-    //     assertEq(balanceAfterTransfer, uint256(value - transferValue));
-
-    //     string memory encryptedBalanceReceiver = token.balanceOfEncrypted(receiver, permissionReceiver);
-    //     uint256 balanceReceiver = unseal(address(token), encryptedBalanceReceiver);
-    //     assertEq(balanceReceiver, uint256(transferValue));
-
-    //     vm.stopBroadcast();
-    // }
 }

@@ -9,19 +9,11 @@ import { FHEVestingWallet } from "../src/FHEVestingWallet.sol";
 import { FheEnabled } from "../util/FheHelper.sol";
 import { Permission, PermissionHelper } from "../util/PermissionHelper.sol";
 
-import { 
-    FHE, 
-    inEuint128,
-    euint128,
-    inEuint32, 
-    euint32,
-    ebool 
-    } from "@fhenixprotocol/contracts/FHE.sol";
+import { FHE, inEuint128, euint128, inEuint32, euint32, ebool } from "@fhenixprotocol/contracts/FHE.sol";
 
 /// @dev If this is your first time with Forge, read this tutorial in the Foundry Book:
 /// https://book.getfoundry.sh/forge/writing-tests
 contract FHEVestingWalletTest is Test, FheEnabled {
-
     //contracts
     FHEVestingWallet vestingWallet;
     FHERC20 token;
@@ -35,7 +27,7 @@ contract FHEVestingWalletTest is Test, FheEnabled {
     uint256 public userPrivateKey;
     Permission private userPermission;
     Permission private userTokenPermission;
-    
+
     address private beneficiary;
     uint256 private beneficiaryPrivateKey;
     Permission private beneficiaryPermission;
@@ -91,7 +83,16 @@ contract FHEVestingWalletTest is Test, FheEnabled {
         vestingWallet.createNewVestingSchedule(address(beneficiary), address(token), amount, startTimestamp, durationSeconds);
     }
 
-    function helper_createNewVestingScheduleRevert(address u, uint256 _amount, uint256 _startTimestamp, uint256 _durationSeconds, bytes4 _revertSelector) private prank(u) {
+    function helper_createNewVestingScheduleRevert(
+        address u,
+        uint256 _amount,
+        uint256 _startTimestamp,
+        uint256 _durationSeconds,
+        bytes4 _revertSelector
+    )
+        private
+        prank(u)
+    {
         inEuint128 memory amount128 = encrypt128(_amount);
 
         inEuint32 memory amount = encrypt32(_amount);
@@ -130,13 +131,8 @@ contract FHEVestingWalletTest is Test, FheEnabled {
         assertEq(durationUnsealed, 200);
         vm.stopPrank();
 
-        (
-            address _vBeneficiary,
-            euint32 _vAmount,
-            euint32 _vStartTimestamp, 
-            euint32 _vDurationSeconds, 
-            euint32 _vAmountReleased
-        ) = vestingWallet.vestingMap(beneficiary, address(token));
+        (address _vBeneficiary, euint32 _vAmount, /*euint32 _vStartTimestamp*/, euint32 _vDurationSeconds, euint32 _vAmountReleased) =
+            vestingWallet.vestingMap(beneficiary, address(token));
 
         assertEq(_vBeneficiary, beneficiary);
 
