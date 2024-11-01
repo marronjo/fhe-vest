@@ -34,7 +34,7 @@ import { IFHERC20 } from "./IFHERC20.sol";
 
 contract FHEVestingWallet is Permissioned {
 
-    error FHEVestingWallet__DuplicateError(address beneficiary, address token);
+    error FHEVestingWallet__DuplicateError();
 
     struct VestDetails {
         address beneficiary;
@@ -44,30 +44,26 @@ contract FHEVestingWallet is Permissioned {
         euint32 amountReleased;
     }
 
-    // mapping(address token => euint32) private _fherc20Released;
+    mapping(address user => mapping(address token => VestDetails)) public vestingMap;
 
-    mapping(address user => mapping(address token => VestDetails)) vestingMap;
-
-    // euint32 private immutable _start;
-    // euint32 private immutable _duration;
-    // address private immutable _beneficiary;
-
-    euint32 private immutable ZERO = FHE.asEuint32(0);
-
-    function createNewVestingSchedule(address beneficiary, address token, euint32 amount, euint32 startTimestamp, euint32 durationSeconds) public {
+    function createNewVestingSchedule(address beneficiary, address token, inEuint32 memory amount, inEuint32 memory startTimestamp, inEuint32 memory durationSeconds) public {
         VestDetails memory vest = vestingMap[beneficiary][token];
         if(vest.beneficiary != address(0)){
-            revert FHEVestingWallet__DuplicateError(beneficiary, token);
+            revert FHEVestingWallet__DuplicateError();
         }
 
-        IFHERC20(token).transferFromEncrypted(msg.sender, address(this), FHE.asEuint128(amount)); 
+        euint32 _amount = FHE.asEuint32(amount);
+        euint32 _startTimestamp = FHE.asEuint32(startTimestamp);
+        euint32 _durationSeconds = FHE.asEuint32(durationSeconds);
+
+        IFHERC20(token).transferFromEncrypted(msg.sender, address(this), FHE.asEuint128(_amount)); 
 
         vestingMap[beneficiary][token] = VestDetails({
             beneficiary: beneficiary,
-            amount: amount,
-            startTimestamp: startTimestamp,
-            durationSeconds: durationSeconds,
-            amountReleased: ZERO
+            amount: _amount,
+            startTimestamp: _startTimestamp,
+            durationSeconds: _durationSeconds,
+            amountReleased: FHE.asEuint32(0)
         });
     }
 
@@ -134,30 +130,14 @@ contract FHEVestingWallet is Permissioned {
 
         vestingMap[beneficiary][token].amountReleased = FHE.add(releasedTokens, amountToRelease);
 
-        //_fherc20Released[token] = FHE.add(releasedTokens, amount);
-
-        //emit ERC20Released(token, amount);
-
-        // MENOTE
-        // this reveals the person but only after tokens are released
-        // could be improved by editing the FHERC20 token to allow secret transfers
-        // e.g. instead of updating address in balances mapping ...
-        // update eaddress in balances mapping instead!
-        IFHERC20(token).transferEncrypted(beneficiary, FHE.asEuint128(amountToRelease)); // cast to 128 needed, no 32 bit method supported in FHERC20 yet
+        IFHERC20(token).transferEncrypted(beneficiary, FHE.asEuint128(amountToRelease));
     }
 
     /**
      * @dev Calculates the amount of tokens that has already vested. Default implementation is a linear vesting curve.
      */
     function vestedAmount(address beneficiary, address token, euint32 currentTimestamp) public view virtual returns (euint32) {
-
         VestDetails memory vest = vestingMap[beneficiary][token];
-
-        // euint128 encryptedBalance = IFHERC20(token).balanceOfEncrypted(address(this)); //TODO
-        // euint32 encryptedBalance32 = FHE.asEuint32(encryptedBalance);
-
-        // euint32 totalAllocation32 = FHE.add(encryptedBalance32, released(token));
-
         return _vestingSchedule(vest.amount, vest.startTimestamp, currentTimestamp, vest.durationSeconds);
     }
 
@@ -166,13 +146,11 @@ contract FHEVestingWallet is Permissioned {
      * an asset given its total historical allocation.
      */
     function _vestingSchedule(euint32 totalAllocation, euint32 startTimestamp, euint32 currentTimestamp, euint32 durationSeconds) internal view virtual returns (euint32) {
-        //MENOTE
         // if timestamp less than start, vesting has not started yet! return zero otherwise calculate amount
-        return FHE.select(FHE.lt(currentTimestamp, startTimestamp), ZERO, _calculateVestingAmount(totalAllocation, startTimestamp, currentTimestamp, durationSeconds));
+        return FHE.select(FHE.lt(currentTimestamp, startTimestamp), FHE.asEuint32(0), _calculateVestingAmount(totalAllocation, startTimestamp, currentTimestamp, durationSeconds));
     }
 
     function _calculateVestingAmount(euint32 totalAllocation, euint32 startTimestamp, euint32 currentTimestamp, euint32 durationSeconds) private pure returns (euint32) {
-        //MENOTE
         // if vesting is over (timestamp > end) then total amount can be released
         // otherwise vesting is ongoing, calculate amount according to linear vesting
         return FHE.select(FHE.gte(currentTimestamp, FHE.add(startTimestamp, durationSeconds)), totalAllocation, _calculateVestingMidAuction(totalAllocation, currentTimestamp, startTimestamp, durationSeconds));
