@@ -17,25 +17,19 @@ error ERC20InvalidSpender(address);
 // maybe this is unsafe, need further clarification
 
 contract FHERC20 is IFHERC20, ERC20, Permissioned {
-
     // A mapping from address to an encrypted balance.
     mapping(address => euint128) internal _encBalances;
     // A mapping from address (owner) to a mapping of address (spender) to an encrypted amount.
     mapping(address => mapping(address => euint128)) internal _allowed;
     euint128 internal totalEncryptedSupply = FHE.asEuint128(0);
 
-    constructor(
-        string memory name,
-        string memory symbol
-    ) ERC20(name, symbol) {}
+    constructor(string memory name, string memory symbol) ERC20(name, symbol) { }
 
     function _allowanceEncrypted(address owner, address spender) public view virtual returns (euint128) {
         return _allowed[owner][spender];
     }
-    function allowanceEncrypted(
-        address spender,
-        Permission calldata permission
-    ) public view virtual onlySender(permission) returns (string memory) {
+
+    function allowanceEncrypted(address spender, Permission calldata permission) public view virtual onlySender(permission) returns (string memory) {
         return FHE.sealoutput(_allowanceEncrypted(msg.sender, spender), permission.publicKey);
     }
 
@@ -98,9 +92,9 @@ contract FHERC20 is IFHERC20, ERC20, Permissioned {
         _mint(msg.sender, FHE.decrypt(amountToUnwrap));
     }
 
-//    function mint(uint256 amount) public {
-//        _mint(msg.sender, amount);
-//    }
+    function mint(uint256 amount) public {
+        _mint(msg.sender, amount);
+    }
 
     function _mintEncrypted(address to, inEuint128 memory encryptedAmount) internal {
         euint128 amount = FHE.asEuint128(encryptedAmount);
@@ -129,15 +123,11 @@ contract FHERC20 is IFHERC20, ERC20, Permissioned {
         return amountToSend;
     }
 
-    function balanceOfEncrypted(
-        address account, Permission memory auth
-    ) virtual public view onlyPermitted(auth, account) returns (string memory) {
+    function balanceOfEncrypted(address account, Permission memory auth) public view virtual onlyPermitted(auth, account) returns (string memory) {
         return _encBalances[account].seal(auth.publicKey);
     }
 
-    function balanceOfEncrypted(
-        address account
-    ) virtual public view returns (euint128) {
+    function balanceOfEncrypted(address account) public view virtual returns (euint128) {
         return _encBalances[account];
     }
 
