@@ -13,6 +13,7 @@ deployments
 cache
 artifacts
 typechain-types
+out
 
 # files
 *.env
